@@ -1,7 +1,7 @@
 package phargo
 
 import (
-	"os"
+	"bytes"
 )
 
 //Reader - PHAR file parser
@@ -27,29 +27,21 @@ func (r *Reader) SetOptions(o Options) {
 }
 
 //Parse - start parsing PHAR file
-func (r *Reader) Parse(filename string) (File, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return File{}, err
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-
+func (r *Reader) Parse(reader *bytes.Reader) (File, error) {
 	var result File
 
 	manifest := &manifest{options: r.options}
-	offset, err := manifest.getOffset(f, 200, "__HALT_COMPILER(); ?>")
+	offset, err := manifest.getOffset(reader, 200, "__HALT_COMPILER(); ?>")
 	if err != nil {
 		return File{}, err
 	}
 
-	_, err = f.Seek(offset, 0)
+	_, err = reader.Seek(offset, 0)
 	if err != nil {
 		return File{}, err
 	}
 
-	err = manifest.parse(f)
+	err = manifest.parse(reader)
 	if err != nil {
 		return File{}, err
 	}
@@ -59,14 +51,14 @@ func (r *Reader) Parse(filename string) (File, error) {
 
 	//files descriptions
 	files := &files{options: r.options}
-	result.Files, err = files.parse(f, manifest.EntitiesCount)
+	result.Files, err = files.parse(reader, manifest.EntitiesCount)
 	if err != nil {
 		return File{}, err
 	}
 
 	//check signature
 	signature := &signature{options: r.options}
-	err = signature.check(filename)
+	err = signature.check(reader)
 	if err != nil {
 		return File{}, err
 	}

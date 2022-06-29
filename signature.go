@@ -10,7 +10,6 @@ import (
 	"errors"
 	"hash"
 	"io"
-	"os"
 )
 
 type signature struct {
@@ -18,18 +17,8 @@ type signature struct {
 }
 
 // http://php.net/manual/en/phar.fileformat.signature.php
-func (s *signature) check(filename string) error {
-	file, _ := os.Open(filename)
-	defer func() {
-		_ = file.Close()
-	}()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return errors.New("can't stat file: " + err.Error())
-	}
-
-	_, err = file.Seek(-8, 2)
+func (s *signature) check(reader *bytes.Reader) error {
+	_, err := reader.Seek(-8, 2)
 	if err != nil {
 		return errors.New("can't seek file: " + err.Error())
 	}
@@ -40,7 +29,7 @@ func (s *signature) check(filename string) error {
 	}
 	var sb sBinary
 
-	err = binary.Read(file, binary.LittleEndian, &sb)
+	err = binary.Read(reader, binary.LittleEndian, &sb)
 	if err != nil {
 		return errors.New("can't read signature bytes: " + err.Error())
 	}
@@ -54,23 +43,23 @@ func (s *signature) check(filename string) error {
 		return nil
 	}
 
-	_, err = file.Seek(-(8 + signatureLength), 2)
+	_, err = reader.Seek(-(8 + signatureLength), 2)
 	if err != nil {
 		return errors.New("can't seek file: " + err.Error())
 	}
 
 	fileSig := make([]byte, signatureLength)
-	_, err = file.Read(fileSig)
+	_, err = reader.Read(fileSig)
 	if err != nil {
 		return errors.New("can't read file signature: " + err.Error())
 	}
 
-	_, err = file.Seek(0, 0)
+	_, err = reader.Seek(0, 0)
 	if err != nil {
 		return errors.New("can't seek file: " + err.Error())
 	}
 
-	if _, err := io.CopyN(hasher, file, stat.Size()-signatureLength-8); err != nil {
+	if _, err := io.CopyN(hasher, reader, reader.Size()-signatureLength-8); err != nil {
 		return errors.New("can't copy buffer to hasher: " + err.Error())
 	}
 

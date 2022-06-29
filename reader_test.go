@@ -1,14 +1,19 @@
 package phargo
 
 import (
+	"bytes"
+	"io/ioutil"
 	"strings"
 	"testing"
 )
 
 func TestSimple(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/simple.phar")
+	fixtureReader := bytes.NewReader(buf)
+
 	r := NewReader()
 
-	file, err := r.Parse("./testdata/simple.phar")
+	file, err := r.Parse(fixtureReader)
 	if err != nil {
 		t.Error("Got error", err)
 		return
@@ -36,9 +41,11 @@ func TestSimple(t *testing.T) {
 }
 
 func TestAliasMD5(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/alias_md5.phar")
+	fixtureReader := bytes.NewReader(buf)
 	r := NewReader()
 
-	file, err := r.Parse("./testdata/alias_md5.phar")
+	file, err := r.Parse(fixtureReader)
 	if err != nil {
 		t.Error("Got error", err)
 		return
@@ -61,9 +68,11 @@ func TestAliasMD5(t *testing.T) {
 }
 
 func TestMetadataDirSHA256(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/metadata_dir_sha256.phar")
+	fixtureReader := bytes.NewReader(buf)
 	r := NewReader()
 
-	file, err := r.Parse("./testdata/metadata_dir_sha256.phar")
+	file, err := r.Parse(fixtureReader)
 	if err != nil {
 		t.Error("Got error", err)
 		return
@@ -111,9 +120,12 @@ func TestMetadataDirSHA256(t *testing.T) {
 }
 
 func TestBadHash(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/bad_hash.phar")
+	fixtureReader := bytes.NewReader(buf)
+
 	r := NewReader()
 
-	_, err := r.Parse("./testdata/bad_hash.phar")
+	_, err := r.Parse(fixtureReader)
 	if err == nil {
 		t.Error("Should get error")
 		return
@@ -126,9 +138,12 @@ func TestBadHash(t *testing.T) {
 }
 
 func TestSHA512(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/sha512.phar")
+	fixtureReader := bytes.NewReader(buf)
+
 	r := NewReader()
 
-	file, err := r.Parse("./testdata/sha512.phar")
+	file, err := r.Parse(fixtureReader)
 	if err != nil {
 		t.Error("Got error", err)
 		return
@@ -141,9 +156,12 @@ func TestSHA512(t *testing.T) {
 }
 
 func TestGZ(t *testing.T) {
+	buf, _ := ioutil.ReadFile("./testdata/gz.phar")
+	fixtureReader := bytes.NewReader(buf)
+
 	r := NewReader()
 
-	file, err := r.Parse("./testdata/gz.phar")
+	file, err := r.Parse(fixtureReader)
 	if err != nil {
 		t.Error("Got error", err)
 		return
