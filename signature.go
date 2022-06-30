@@ -17,7 +17,7 @@ type signature struct {
 }
 
 // http://php.net/manual/en/phar.fileformat.signature.php
-func (s *signature) check(reader *bytes.Reader) error {
+func (s *signature) check(reader ReadSeekSizer) error {
 	_, err := reader.Seek(-8, 2)
 	if err != nil {
 		return errors.New("can't seek file: " + err.Error())

@@ -1,8 +1,13 @@
 package phargo
 
 import (
-	"bytes"
+	"io"
 )
+
+type ReadSeekSizer interface {
+	io.ReadSeeker
+	Size() int64
+}
 
 //Reader - PHAR file parser
 type Reader struct {
@@ -27,7 +32,7 @@ func (r *Reader) SetOptions(o Options) {
 }
 
 //Parse - start parsing PHAR file
-func (r *Reader) Parse(reader *bytes.Reader) (File, error) {
+func (r *Reader) Parse(reader ReadSeekSizer) (File, error) {
 	var result File
 
 	manifest := &manifest{options: r.options}
